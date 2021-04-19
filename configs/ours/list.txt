@@ -1,0 +1,88 @@
+2
+our_ssd300_voc0712 + our_ssd300 = train_our_regular_nolocloss
+	save: ssd300voc_nolocloss
+3
+cocktail1_our_ssd300_voc0712 + our_ssd300_cocktail = cocktail 1:
+	loss: -0.5log(p1) - 0.5log(p2)
+	epoch: 24
+	save:  ./work_dirs/cocktail1_ssd300voc_epoch24_losstype1
+	--no-validate
+4
+cocktail2_our_ssd300_voc0712 + our_ssd300_cocktail = cocktail 2:
+	loss: -0.5log(p1) - 0.5log(p2)
+	epoch: 48
+	save:  ./work_dirs/cocktail2_ssd300voc_epoch48_losstype1
+	--no-validate
+5
+cocktail3_our_ssd300_voc0712 + our_ssd300_cocktail_loss2 = cocktail 3:
+	loss: -(0.5 - p1)^2*log(p1)-(0.5 - p2)^2*log(p2)
+	epoch: 24
+	save: cocktail3_ssd300voc_epoch24_losstype2
+	--no-validate
+6 
+cocktail4_our_ssd300_voc0712 + our_ssd300_cocktail_loss3 = cocktail 4:
+	loss: -log(p1) if p2 is bkg
+	      -log(p2) if p1 is bkg
+	      -0.5log(p1) - 0.5log(p2) otherwise
+	epoch: 24
+	save: cocktail4_ssd300voc_epoch24_losstype3
+	--no-validate
+7 
+cocktail5_our_ssd300_voc0712 + our_ssd300_cocktail_loss3 = cocktail 5:
+	loss: -log(p1) if p2 is bkg
+	      -log(p2) if p1 is bkg
+	      -0.5log(p1) - 0.5log(p2) otherwise
+	epoch: 48
+	save: cocktail5_ssd300voc_epoch24_losstype3  (this is a typo, should be epoch48)
+	--no-validate
+8
+cocktail6_our_ssd300_voc0712 + our_ssd300_cocktail_loss4 = cocktail 6:
+	loss: 
+		cls_loss: -log(p1) if p2 is bkg
+	      		  -log(p2) if p1 is bkg
+	      		  -0.5log(p1) - 0.5log(p2) otherwise
+		the above is the old style, i am writing down a new style below which is more serious
+
+		cls_loss: cross_entropy(p, gt1) if gt2 is bkg
+			  cross_entropy(p, gt2) if gt1 is bkg
+			  0.5cross_entropy(p, gt1)+0.5cross_entropy(p, gt1) otherwise
+
+		reg_loss: smoothl1(p, gt1) if gt2 is bkg
+			  smoothl1(p, gt2) if gt1 is bkg
+			  0                if gt1 and gt2 are bkg
+			  smoothl1(p, union(gt1, gt2)) otherwise
+	save: cocktail6_ssd300voc_epoch24_losstype4 
+	--no-validate
+9 
+cocktail6_our_ssd300_voc0712 + our_ssd300_cocktail_loss4 - loss_bbox_both = cocktail 7:
+		cls_loss: cross_entropy(p, gt1) if gt2 is bkg
+			  cross_entropy(p, gt2) if gt1 is bkg
+			  0.5cross_entropy(p, gt1)+0.5cross_entropy(p, gt1) otherwise
+
+		reg_loss: smoothl1(p, gt1) if gt2 is bkg
+			  smoothl1(p, gt2) if gt1 is bkg
+			  0                if gt1 and gt2 are bkg
+			  0                otherwise
+	save: cocktail7_ssd300voc_epoch24_losstype5 
+	--no-validate
+10
+cocktail8_our_ssd300_voc0712 + our_ssd300_cocktail_loss4 = cocktail 8:
+	loss: 
+		cls_loss: cross_entropy(p, gt1) if gt2 is bkg
+			  cross_entropy(p, gt2) if gt1 is bkg
+			  0.5cross_entropy(p, gt1)+0.5cross_entropy(p, gt1) otherwise
+
+		reg_loss: smoothl1(p, gt1) if gt2 is bkg
+			  smoothl1(p, gt2) if gt1 is bkg
+			  0                if gt1 and gt2 are bkg
+			  smoothl1(p, union(gt1, gt2)) otherwise
+	save: cocktail8_ssd300voc_epoch48_losstype4 
+	--no-validate
+
+
+
+
+
+
+
+

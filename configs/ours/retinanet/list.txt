@@ -1,0 +1,7 @@
+cocktail9:
+
+img = 0.5* img1 + 0.5 * img2
+
+cocktail9 2x batch 2
+
+batch 2 means 4 samples for each gpu, because 4/2 = 2 for cocktail
