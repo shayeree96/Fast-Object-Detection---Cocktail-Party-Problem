@@ -145,7 +145,7 @@ python tools/test_cc.py configs/ours/test_cocktail1_our_ssd300_voc0712.py work_d
 ```
 
 ## Results
-### ![image](https://user-images.githubusercontent.com/54212099/115319786-8c66cb00-a14e-11eb-83e2-7e57c967c9e9.png)
+![image](https://user-images.githubusercontent.com/54212099/115319786-8c66cb00-a14e-11eb-83e2-7e57c967c9e9.png)
 
 
 ## Acknowledgements
