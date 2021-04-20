@@ -6,6 +6,10 @@ A common task in the vision community is to search objects from a large image da
 
 In this work we create a novel approach to utilize the cocktail party effect of convolutional neural networks (CNNs) for fast search. The cocktail party effect of CNNs means the ability to recognize the semantic information from a mixture of images. Specifically, we train and test detection models using channel-wise concatenated image groups. The model will learn to weighted-sum each group to form a mixture of images and extract features from the mixture. The features are used to either denoise the objects from object-background mixture or recognize the objects from object-object mixture. With the proposed testing pipeline, we greatly accelerate the searching speed compared to regular detection methods. Furthermore, our methodology can be easily applied to video processing, detection over video frames, and classification.
 
+## Motivation
+
+Let's say we are have a video dataset, where we are trying to find or search for a certain object. The object might we missing in many of the time frames, but our inferencing pipeline on any trained detection module would still scan the images one after another. What if we could pass two images into the detection pipeline as a mixture and check if either of the frames have the object or not and only localize for the frames if the object is classified to be present in that frame. This would drastically save us time on inferencing and actually reduce it by half. But the challenge is to train a detector which recognize the objects from object-object mixture and also object-background mixture and yet maintain the precision and recall in classification and the mAP for localization. 
+
 ## Understanding the Pipeline :
 
 We use the Single Shot Detection model as our baseline for detection. This model uses VGG-16 Backbone and for simplicity we haven't added the FPN neck into the pipeline yet.
@@ -46,11 +50,23 @@ note: G1 and G2 is groudtruth for feature pixel, not for bounding boxes
 Recall = number(True positives) / ( number(G) - number(G_BK))# G_BK - No of pixels that are assigned background as Ground Truth
 precision  =1 -  number(False positive) / number (F(P))
 ```     
-We try different models by trying on based on classification loss, as well based on classification and localizaation loss. We 
+
+Once we further train our model with the mixture of images on Pascal VOC pretrained weights for SSD, for 25 epochs on eight NVIDIA's GeForce RTX 2080 gpus, and get the classification precision and recall at par with the baseline SSD model which is trained without the mixture of images. 
+Now the classification recall is of the utmost importance to us since it denotes whether the target object is present in either of two images or not. If not then we discard those frames, otherwise we take those frames and on our trained classification model, we now pass the images one by one and find the localization mAP and recall. 
+
+Our novel approach helps especially during inferencing, we take a batch and halve it and mix the images in the splits using pixel-wise addition ( same as training ) and check the classification recall, if the target object is detected in either of the images, then we pass the images one by one through our trained ssd model to get the bounding boxes. Otherwise we move on to next set of image mixtures
 
 #### Set up environment
 
 Please check the mmdetection requirements.txt for setting up the environment. The repo is linked in citations.
+However following are some general instructions :
+```
+pip install -r requirements/build.txt
+pip install "git+https://github.com/open-mmlab/cocoapi.git#subdirectory=pycocotools"
+pip install mmcv==0.6.2
+sudo chown -R ( mention the path where you have cloned the repo) /
+pip install -v -e .
+```
 
 #### Download VOC dataset
 Navigate to the project root directory
@@ -100,7 +116,6 @@ tar xvf VOCtest_06-Nov-2007.tar
        cocktail7_our_ssd300_voc0712.py
        cocktail8_our_ssd300_voc0712.py
    ```
-    
   2. mmdet/models/detectors - Here we have incorporated the cocktail_single_stage.py as a new detector head to enable the inference for a mixture of images and hence reduce the inference inference time by half
   3. mmdet/models/dense_heads - Here we have incorporated the different heads for classification based on the variations of loss functions which include:
   ```   our_ssd_head.py
@@ -115,7 +130,6 @@ We have trained for a certain cocktail configuration.
 
 Run:
 ```
-
 python tools/train.py configs/ours/cocktail1_our_ssd300_voc0712.py 
 
 ```
@@ -129,9 +143,9 @@ Run:
 python tools/test_cc.py configs/ours/test_cocktail1_our_ssd300_voc0712.py work_dirs/ssd300_voc0712/epoch_24.pth --out 1.pkl --eval mAP
 
 ```
-<div align="center">
-  <img src="images/22_new.png" width="800"/>
-</div>
+
+## Results
+
 
 
 ## Acknowledgements
